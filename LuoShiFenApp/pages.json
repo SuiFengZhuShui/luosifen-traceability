@@ -1,0 +1,58 @@
+{
+  "pages": [
+    {
+      "path": "pages/login/login",
+      "style": { "navigationBarTitleText": "登录" }
+    },
+    {
+      "path": "pages/home/home",
+      "style": { "navigationBarTitleText": "工作台" }
+    },
+    {
+      "path": "pages/dispatch/create",
+      "style": { "navigationBarTitleText": "新建发货" }
+    },
+    {
+      "path": "pages/dispatch/detail",
+      "style": { "navigationBarTitleText": "发货详情" }
+    },
+    {
+      "path": "pages/sign/sign",
+      "style": { "navigationBarTitleText": "签收确认" }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "溯源系统",
+    "navigationBarBackgroundColor": "#F8F8F8",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#007AFF",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "工作台",
+        "iconPath": "/static/tab-home.png",
+        "selectedIconPath": "/static/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/dispatch/create",
+        "text": "新建发货",
+        "iconPath": "/static/tab-add.png",
+        "selectedIconPath": "/static/tab-add-active.png"
+      }
+    ]
+  },
+  "uniModules": {
+    "uni-icons": {
+      "version": "1.3.5"
+    },
+    "uni-scss": {
+      "version": "1.0.0"
+    }
+  }
+}
