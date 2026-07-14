@@ -1,0 +1,7 @@
+/LuoShiFencms/vendor/
+/LuoShiFencms/.env
+/LuoShiFenApp/unpackage/
+/LuoShiFenApp/node_modules/
+*.log
+.DS_Store
+Thumbs.db
