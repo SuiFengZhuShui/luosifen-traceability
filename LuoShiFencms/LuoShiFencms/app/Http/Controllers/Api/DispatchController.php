@@ -61,7 +61,14 @@ class DispatchController extends Controller
         // 获取 access_token
         $tokenUrl = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id={$apiKey}&client_secret={$secretKey}";
         
-        $tokenRes = file_get_contents($tokenUrl);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $tokenUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTPS);
+        $tokenRes = curl_exec($ch);
+        curl_close($ch);
         $tokenData = json_decode($tokenRes, true);
         
         if (!isset($tokenData['access_token'])) {
