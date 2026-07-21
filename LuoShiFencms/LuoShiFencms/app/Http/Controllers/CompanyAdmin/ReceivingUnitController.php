@@ -41,7 +41,7 @@ class ReceivingUnitController extends Controller
         $data['enterprise_id'] = $enterpriseId;
         $data['status'] = 1;
         if ($request->filled('password')) {
-            $data['password'] = $request->password;
+            $data['password'] = bcrypt($request->password);
         }
 
         $receivingUnit = ReceivingUnit::create($data);
@@ -83,7 +83,7 @@ class ReceivingUnitController extends Controller
 
         $data = $request->only('name', 'contact_person', 'phone', 'address', 'account_name', 'status');
         if ($request->filled('password')) {
-            $data['password'] = $request->password;
+            $data['password'] = bcrypt($request->password);
         }
         $receivingUnit->update($data);
 
@@ -108,7 +108,7 @@ class ReceivingUnitController extends Controller
             'password' => 'required|min:6',
         ]);
 
-        $receivingUnit->update(['password' => $request->password]);
+        $receivingUnit->update(['password' => bcrypt($request->password)]);
 
         AuditLog::create([
             'user_id' => auth()->id(),
