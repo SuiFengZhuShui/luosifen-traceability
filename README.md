@@ -74,4 +74,4 @@ cd LuoShiFencms/LuoShiFencms && ./vendor/bin/phpunit
 
 ## License
 
-MIT
+Copyright © 2026 随风逐水。保留所有权利。
