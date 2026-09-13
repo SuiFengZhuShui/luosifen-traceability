@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="LuoShiFenApp/static/index.png" width="120" height="120" style="border-radius: 20px;" alt="螺蛳粉溯源系统">
+</p>
+
 <h1 align="center">螺蛳粉溯源系统</h1>
 
 <p align="center">螺蛳粉生产流通溯源平台 · 一单一码，发货签收全程留痕</p>
