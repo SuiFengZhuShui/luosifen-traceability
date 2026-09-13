@@ -11,3 +11,7 @@ Thumbs.db
 *.sql
 *.sql.gz
 源代码.txt
+
+# Claude Code 本地工作区（settings/cache 忽略，项目记忆保留）
+.claude/*
+!.claude/memory/
