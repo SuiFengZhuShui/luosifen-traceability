@@ -32,22 +32,25 @@
           </view>
         </view>
 
-        <!-- 签收表单：仅保留实收数量和签名 -->
+        <!-- 签收表单 -->
         <view class="form-section">
           <view class="form-item">
             <text class="form-label">实收数量 *</text>
             <input class="form-input" v-model="form.actual_quantity" type="number" placeholder="请输入实收数量" />
           </view>
 
-          <!-- 手写签名 -->
+          <!-- 手写签名：点击放大 -->
           <view class="form-item">
             <text class="form-label">手写签名 *</text>
-            <view class="signature-area">
-              <canvas canvas-id="signCanvas" class="sign-canvas"
-                      @touchstart="startSign" @touchmove="signing" @touchend="endSign"></canvas>
+            <view class="signature-preview" @click="showSignModal = true">
+              <image v-if="form.signature" :src="form.signature" mode="widthFix" class="sign-preview-img" />
+              <view v-else class="sign-placeholder">
+                <text class="sign-placeholder-icon">✍️</text>
+                <text class="sign-placeholder-text">点击此处手写签名</text>
+              </view>
             </view>
-            <view class="signature-actions">
-              <text class="action-btn" @click="clearCanvas">清除重签</text>
+            <view v-if="form.signature" class="signature-actions">
+              <text class="action-btn" @click="showSignModal = true">重新签名</text>
             </view>
           </view>
         </view>
@@ -56,6 +59,22 @@
         <button class="submit-btn" @click="submitSign" :disabled="submitting">
           {{ submitting ? '提交中...' : '确认签收' }}
         </button>
+      </view>
+    </view>
+
+    <!-- 全屏签名弹窗 -->
+    <view v-if="showSignModal" class="sign-modal" @touchmove.stop.prevent>
+      <view class="sign-modal-header">
+        <text class="modal-title">手写签名</text>
+        <text class="modal-close" @click="showSignModal = false">取消</text>
+      </view>
+      <view class="sign-modal-body">
+        <canvas canvas-id="signCanvas" class="sign-canvas"
+                @touchstart="startSign" @touchmove="signing" @touchend="endSign"></canvas>
+      </view>
+      <view class="sign-modal-footer">
+        <button class="modal-btn btn-clear" @click="clearCanvas">清除</button>
+        <button class="modal-btn btn-confirm" @click="confirmSign">确认</button>
       </view>
     </view>
   </view>
@@ -79,11 +98,12 @@ export default {
       alreadySigned: false,
       signedInfo: { signed_at: '' },
       submitting: false,
+      showSignModal: false,
       ctx: null,
       drawing: false
     };
   },
-  
+
   async onLoad(options) {
     const id = options.id || '';
     if (!id) {
@@ -93,15 +113,7 @@ export default {
     this.dispatchId = id;
     await this.loadSignInfo(id);
   },
-  
-  onReady() {
-    setTimeout(() => {
-      if (!this.alreadySigned) {
-        this.initCanvas();
-      }
-    }, 500);
-  },
-  
+
   methods: {
     async loadSignInfo(id) {
       uni.showLoading({ title: '加载中...' });
@@ -156,17 +168,18 @@ export default {
       this.ctx.draw();
     },
 
-    getSignature() {
-      return new Promise((resolve, reject) => {
-        uni.canvasToTempFilePath({
-          canvasId: 'signCanvas',
-          success: (res) => {
-            const fs = uni.getFileSystemManager();
-            const base64 = fs.readFileSync(res.tempFilePath, 'base64');
-            resolve('data:image/png;base64,' + base64);
-          },
-          fail: reject
-        });
+    confirmSign() {
+      uni.canvasToTempFilePath({
+        canvasId: 'signCanvas',
+        success: (res) => {
+          const fs = uni.getFileSystemManager();
+          const base64 = fs.readFileSync(res.tempFilePath, 'base64');
+          this.form.signature = 'data:image/png;base64,' + base64;
+          this.showSignModal = false;
+        },
+        fail: () => {
+          uni.showToast({ title: '获取签名失败', icon: 'none' });
+        }
       });
     },
 
@@ -175,11 +188,13 @@ export default {
         uni.showToast({ title: '请输入实收数量', icon: 'none' });
         return;
       }
+      if (!this.form.signature) {
+        uni.showToast({ title: '请手写签名', icon: 'none' });
+        return;
+      }
 
       try {
         this.submitting = true;
-        const signature = await this.getSignature();
-        this.form.signature = signature;
 
         const res = await uni.request({
           url: `http://127.0.0.1/sign/${this.dispatchId}`,
@@ -187,8 +202,8 @@ export default {
           header: { 'Content-Type': 'application/json' },
           data: {
             actual_quantity: this.form.actual_quantity,
-            receiver_name: '',      // 不收集，传空
-            receiver_phone: '',     // 不收集，传空
+            receiver_name: '',
+            receiver_phone: '',
             signature: this.form.signature
           }
         });
@@ -206,12 +221,24 @@ export default {
         this.submitting = false;
       }
     }
+  },
+
+  watch: {
+    showSignModal(val) {
+      if (val) {
+        this.$nextTick(() => {
+          setTimeout(() => {
+            this.initCanvas();
+          }, 200);
+        });
+      }
+    }
   }
 };
 </script>
 
 <style scoped>
-.page { min-height: 100vh; background: #f0f4ff; padding: 40rpx; }
+.page { background: #f0f4ff; padding: 40rpx; min-height: 100vh; }
 .card { background: #fff; border-radius: 30rpx; padding: 40rpx; }
 .signed-notice { text-align: center; padding: 40rpx 0; }
 .notice-icon { font-size: 80rpx; display: block; margin-bottom: 20rpx; }
@@ -227,10 +254,49 @@ export default {
 .form-item { margin-bottom: 30rpx; }
 .form-label { font-size: 28rpx; color: #333; margin-bottom: 12rpx; display: block; font-weight: 500; }
 .form-input { border: 1px solid #ddd; border-radius: 12rpx; padding: 20rpx; font-size: 30rpx; background: #fafafa; }
-.signature-area { border: 1px solid #ddd; border-radius: 12rpx; overflow: hidden; background: #fff; }
-.sign-canvas { width: 100%; height: 200px; }
+
+/* 签名预览区域 */
+.signature-preview {
+  border: 2rpx dashed #ccc;
+  border-radius: 12rpx;
+  background: #fafafa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200rpx;
+  overflow: hidden;
+}
+.sign-preview-img { width: 100%; }
+.sign-placeholder { text-align: center; padding: 40rpx 0; }
+.sign-placeholder-icon { font-size: 60rpx; display: block; margin-bottom: 12rpx; }
+.sign-placeholder-text { font-size: 28rpx; color: #999; }
 .signature-actions { text-align: right; margin-top: 12rpx; }
 .action-btn { font-size: 26rpx; color: #007aff; padding: 8rpx 20rpx; }
+
+/* 全屏签名弹窗 */
+.sign-modal {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: #fff; z-index: 999;
+  display: flex; flex-direction: column;
+}
+.sign-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20rpx 40rpx; border-bottom: 1rpx solid #eee;
+}
+.modal-title { font-size: 34rpx; font-weight: bold; }
+.modal-close { font-size: 30rpx; color: #999; }
+.sign-modal-body {
+  flex: 1; padding: 40rpx;
+  display: flex; justify-content: center; align-items: center;
+}
+.sign-canvas { width: 100%; height: 500rpx; border: 1rpx solid #ddd; border-radius: 12rpx; background: #fff; }
+.sign-modal-footer {
+  display: flex; gap: 20rpx; padding: 20rpx 40rpx 60rpx;
+}
+.modal-btn { flex: 1; height: 90rpx; line-height: 90rpx; text-align: center; border-radius: 50rpx; font-size: 32rpx; border: none; }
+.btn-clear { background: #f0f0f0; color: #666; }
+.btn-confirm { background: linear-gradient(135deg, #3a7bd5, #00d2ff); color: #fff; }
+
 .submit-btn { background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%); color: #fff; border: none; border-radius: 50rpx; height: 90rpx; line-height: 90rpx; font-size: 32rpx; font-weight: bold; margin-top: 10rpx; }
 .submit-btn[disabled] { opacity: 0.5; }
 </style>
