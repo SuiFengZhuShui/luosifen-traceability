@@ -108,7 +108,7 @@ BAIDU_OCR_SECRET_KEY=你的Secret Key
 ### 小程序端启动
 
 1. HBuilderX 打开 `LuoShiFenApp/` 目录
-2. 配置 `manifest.json` 微信小程序 appid
+2. `manifest.json` 中 `mp-weixin.appid` 填自己的微信小程序 AppID（仓库内默认为空，`__UNI__E23A8B1` 是 uni-app 应用标识，不用改）。**填完不要提交**——AppID 属于个人凭据，提交前用 `git diff LuoShiFenApp/manifest.json` 确认没有带出
 3. 修改 API 请求地址指向本地后台
 4. 运行到微信开发者工具
 
